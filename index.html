@@ -1,0 +1,80 @@
+
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>FRANCKBOT PRO</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:#08111f;color:#eef4ff;
+font-family:Arial,sans-serif;padding:20px}
+header{padding:20px 0;border-bottom:1px solid #263750}
+h1{color:#55e6b0;font-size:26px;margin:0}
+.sub{color:#9aabc4;font-size:13px}
+.card{background:#111e30;border:1px solid #2b405b;
+border-radius:15px;padding:18px;margin-top:18px}
+.label{color:#9aabc4;font-size:13px}
+.value{font-size:22px;font-weight:bold;margin-top:8px}
+button{width:100%;padding:15px;border:0;border-radius:10px;
+font-weight:bold;font-size:16px;margin-top:12px}
+.connect{background:#55e6b0;color:#06151a}
+.stop{background:#293950;color:white}
+.note{font-size:13px;line-height:1.6;color:#b7c6db}
+</style>
+</head>
+<body>
+<header>
+<h1>FRANCKBOT PRO</h1>
+<p class="sub">DERIV • SMART TRADING DASHBOARD</p>
+</header>
+
+<div class="card">
+<div class="label">CONNEXION DERIV</div>
+<div class="value" id="status">Non connecté</div>
+<button class="connect" onclick="connect()">
+Connecter mon compte Deriv
+</button>
+<p class="note">La connexion OAuth sera configurée
+après l'hébergement HTTPS et l'enregistrement de l'application.</p>
+</div>
+
+<div class="card">
+<div class="label">MARCHÉ PRINCIPAL</div>
+<div class="value">Volatility 25 (R_25)</div>
+<p class="note">Mode : démonstration uniquement</p>
+</div>
+
+<div class="card">
+<div class="label">ÉTAT DU BOT</div>
+<div class="value" id="bot">À configurer</div>
+<button class="stop" onclick="stopBot()">
+ARRÊTER LE BOT
+</button>
+<p class="note" id="message">
+Aucun trade n'est exécuté. La connexion API et les règles
+de gestion du risque restent à configurer.
+</p>
+</div>
+
+<div class="card">
+<div class="label">GESTION DU RISQUE</div>
+<p class="note">• Commencer sur un compte démo<br>
+• Définir une mise maximale<br>
+• Définir une limite de perte<br>
+• Ne pas trader sans signal validé</p>
+</div>
+
+<script>
+function connect(){
+document.getElementById("message").textContent =
+"Étape suivante : héberger l'application en HTTPS, puis configurer OAuth Deriv.";
+}
+function stopBot(){
+document.getElementById("bot").textContent = "ARRÊTÉ";
+document.getElementById("message").textContent =
+"Aucun trade n'est lancé par cette version initiale.";
+}
+</script>
+</body>
+</html>
