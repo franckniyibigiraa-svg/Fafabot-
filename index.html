@@ -66,15 +66,119 @@ de gestion du risque restent à configurer.
 </div>
 
 <script>
-function connect(){
-document.getElementById("message").textContent =
-"Étape suivante : héberger l'application en HTTPS, puis configurer OAuth Deriv.";
+
+const APP_ID = "340vm8m03NKPtMCg10X70";
+const REDIRECT_URI = "https://franckniyibigiraa-svg.github.io/Fafabot-/";
+const WORKER_URL = "https://franckbot-pro-oauth.franckniyibigira10.workers.dev";
+
+function showMessage(message) {
+  const el = document.getElementById("message");
+  if (el) el.textContent = message;
 }
-function stopBot(){
-document.getElementById("bot").textContent = "ARRÊTÉ";
-document.getElementById("message").textContent =
-"Aucun trade n'est lancé par cette version initiale.";
+
+function randomHex(bytes = 32) {
+  const data = new Uint8Array(bytes);
+  crypto.getRandomValues(data);
+  return Array.from(data, b => b.toString(16).padStart(2, "0")).join("");
 }
+
+async function createChallenge(verifier) {
+  const data = new TextEncoder().encode(verifier);
+  const hash = await crypto.subtle.digest("SHA-256", data);
+  return btoa(String.fromCharCode(...new Uint8Array(hash)))
+    .replace(/\+/g, "-")
+    .replace(/\//g, "_")
+    .replace(/=+$/, "");
+}
+
+async function connect() {
+  try {
+    if (!window.isSecureContext || !crypto.subtle) {
+      showMessage("Veuillez ouvrir FRANCKBOT PRO via son URL HTTPS.");
+      return;
+    }
+
+    const verifier = randomHex(32);
+    const challenge = await createChallenge(verifier);
+    const state = randomHex(16);
+
+    sessionStorage.setItem("franckbot_pkce_verifier", verifier);
+    sessionStorage.setItem("franckbot_oauth_state", state);
+
+    const params = new URLSearchParams({
+      response_type: "code",
+      client_id: APP_ID,
+      redirect_uri: REDIRECT_URI,
+      scope: "read",
+      state: state,
+      code_challenge: challenge,
+      code_challenge_method: "S256"
+    });
+
+    showMessage("Redirection vers Deriv pour autoriser la connexion…");
+    window.location.href =
+      "https://auth.deriv.com/oauth2/auth?" + params.toString();
+  } catch (error) {
+    console.error(error);
+    showMessage("Impossible de préparer la connexion. Veuillez réessayer.");
+  }
+}
+
+async function handleOAuthCallback() {
+  const params = new URLSearchParams(window.location.search);
+  const code = params.get("code");
+  const returnedState = params.get("state");
+  const expectedState = sessionStorage.getItem("franckbot_oauth_state");
+  const verifier = sessionStorage.getItem("franckbot_pkce_verifier");
+
+  if (!code) return;
+
+  if (!returnedState || returnedState !== expectedState || !verifier) {
+    showMessage("Connexion refusée : vérification de sécurité échouée.");
+    return;
+  }
+
+  showMessage("Vérification de l’autorisation Deriv…");
+
+  try {
+    const response = await fetch(WORKER_URL + "/token", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        code: code,
+        code_verifier: verifier,
+        client_id: APP_ID,
+        redirect_uri: REDIRECT_URI
+      })
+    });
+
+    const result = await response.json();
+
+    if (!response.ok) {
+      console.error(result);
+      showMessage("La connexion a échoué. Vérifiez la configuration OAuth.");
+      return;
+    }
+
+    showMessage("Réponse reçue de Deriv. Vérifiez le compte avant de continuer.");
+    console.log("Réponse OAuth reçue.");
+    sessionStorage.removeItem("franckbot_pkce_verifier");
+    sessionStorage.removeItem("franckbot_oauth_state");
+
+    window.history.replaceState({}, document.title, REDIRECT_URI);
+  } catch (error) {
+    console.error(error);
+    showMessage("Erreur de communication avec le serveur OAuth.");
+  }
+}
+
+function stopBot() {
+  const el = document.getElementById("bot");
+  if (el) el.textContent = "Aucun trade n'est lancé par cette version.";
+}
+
+handleOAuthCallback();
+
 </script>
 </body>
 </html>
